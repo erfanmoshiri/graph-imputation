@@ -15,7 +15,9 @@ test
 *.pth
 *.tensor
 *.txt
+
 credentials.py
+utils/query_snowflake.py
 
 gat/
 property_data_correction/

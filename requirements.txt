@@ -1,0 +1,12 @@
+matplotlib
+numpy
+tables
+torch
+torch_geometric
+
+pyqt5
+scipy
+seaborn
+sqlalchemy
+snowflake-connector-python[pandas]
+joblib

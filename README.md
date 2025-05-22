@@ -1,0 +1,7 @@
+As data collection increasingly draws from diverse and often imperfect sources, missing values have become a persistent challenge to data-driven systems by degrading model accuracy and introducing bias into downstream tasks. Traditional imputation methods, though effective in simple scenarios, often fail to capture the intricate dependencies present in real-world data, such as feature correlations, instance-level patterns, and structural relationships in spatial or relational datasets.
+
+To address these limitations, we propose a graph-based autoencoder framework that integrates Graph Neural Networks (GNNs) with attention mechanisms to enhance imputation performance. By modeling data points as nodes within a graph, the framework captures interdependencies among samples, while attention layers selectively prioritize informative neighbors during reconstruction.
+
+The autoencoder architecture encodes data into a compact latent space, enabling the model to extract salient features and generalize across instances, thereby facilitating accurate inference of missing values based on shared structural patterns. Experimental evaluations on multiple real-world datasets demonstrate that our method consistently outperforms both traditional and contemporary deep learning-based baselines, achieving up to a 4\% improvement in imputation accuracy. These results underscore the effectiveness and scalability of graph attention autoencoders as a robust solution for missing data imputation.
+
+[arch1.pdf](https://github.com/user-attachments/files/20381085/arch1.pdf)

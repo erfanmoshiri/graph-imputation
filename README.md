@@ -4,4 +4,5 @@ To address these limitations, we propose a graph-based autoencoder framework tha
 
 The autoencoder architecture encodes data into a compact latent space, enabling the model to extract salient features and generalize across instances, thereby facilitating accurate inference of missing values based on shared structural patterns. Experimental evaluations on multiple real-world datasets demonstrate that our method consistently outperforms both traditional and contemporary deep learning-based baselines, achieving up to a 4\% improvement in imputation accuracy. These results underscore the effectiveness and scalability of graph attention autoencoders as a robust solution for missing data imputation.
 
-[arch1.pdf](https://github.com/user-attachments/files/20381085/arch1.pdf)
+<img width="1733" alt="Screenshot 2025-05-22 at 4 22 42 pm" src="https://github.com/user-attachments/assets/49407a32-bf50-4238-81df-98e833dddcb1" />
+

@@ -22,6 +22,7 @@ utils/query_snowflake.py
 gat_autoencoder/data/
 gat_autoencoder/categorical_model/runs/
 
+cora/
 
 gat/
 property_data_correction/

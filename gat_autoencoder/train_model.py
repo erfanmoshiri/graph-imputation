@@ -8,7 +8,7 @@ from sklearn.metrics import confusion_matrix, mean_squared_error, mean_absolute_
 from gat_autoencoder.categorical_model.edge_index import create_edge_index_for_full_data, create_clusters
 from gat_autoencoder.decoder_model import NumericalDecoder
 from gat_autoencoder.encoder_model import MyGATv2EncoderVAEOLD
-from gat_autoencoder.v2.load_data import split_into_clusters, create_cluster_edge_index, add_gaussian_noise
+from gat_autoencoder.load_data import add_gaussian_noise
 from utils.plot_utils import plot_curve
 from utils.utils import build_optimizer
 
@@ -172,7 +172,7 @@ def train_model(data, path, args):
             kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()) / cluster_size
 
             # Total VAE loss
-            beta = 0.1  # Adjust beta as needed
+            beta = 0.001  # Adjust beta as needed
             loss = recon_loss_numerical + beta * kl_loss
 
             loss.backward()  # Accumulate gradients across clusters

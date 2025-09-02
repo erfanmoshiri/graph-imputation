@@ -32,7 +32,7 @@ from torch.nn import BatchNorm1d
 #
 #         # Final layer
 #         x = torch.nn.functional.dropout(x, p=0.2, training=self.training)
-#         x = self.conv3(x, edge_index)
+#         x = self.conv3(x, edge_index) 
 #
 #         return torch.sigmoid(x)
 

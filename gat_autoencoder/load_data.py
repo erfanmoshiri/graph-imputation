@@ -15,6 +15,43 @@ from sklearn.impute import KNNImputer
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
+
+def split_into_clusters(tensor, num_clusters):
+    size = tensor.shape[0]
+    cluster_size = size // num_clusters
+    clusters = []
+
+    for i in range(num_clusters):
+        start_idx = i * cluster_size
+        if i == num_clusters - 1:  # Last cluster takes remaining nodes
+            end_idx = size
+        else:
+            end_idx = (i + 1) * cluster_size
+
+        clusters.append(tensor[start_idx:end_idx])
+
+    return clusters
+
+
+def create_cluster_edge_index(cluster_size):
+    # Create edges for a cluster (similar to your original edge creation)
+    edge_start = list(range(cluster_size - 1))
+    edge_end = list(range(1, cluster_size))
+    edge_end2 = list(range(2, cluster_size))
+    edge_end2.extend([cluster_size - 1])
+    edge_end.extend(edge_end2)
+    edge_index = torch.tensor([edge_start * 2, edge_end], dtype=torch.long)
+
+    return edge_index
+
+
+def add_gaussian_noise(input_tensor, mean=0.0, std=0.1):
+    noise = torch.randn_like(input_tensor) * std + mean
+    noisy_input = input_tensor + noise
+    return torch.clamp(noisy_input, 0.0, 1.0)  # Clamping to keep values in [0, 1] range
+
+
+
 def replace_categorical_null(arr):
     for i in range(arr.shape[1]):
         col = arr[:, i]

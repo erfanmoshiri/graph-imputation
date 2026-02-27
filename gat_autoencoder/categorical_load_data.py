@@ -7,12 +7,165 @@ import numpy as np
 import pandas as pd
 import torch
 from joblib import dump
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from torch_geometric.data import Data
 
 
 # data_df = pd.read_hdf('/GAT_clean_df_sorted.hdf', key='s')
+
+
+def split_into_clusters(tensor, num_clusters):
+    size = tensor.shape[0]
+    cluster_size = size // num_clusters
+    clusters = []
+
+    for i in range(num_clusters):
+        start_idx = i * cluster_size
+        if i == num_clusters - 1:  # Last cluster takes remaining nodes
+            end_idx = size
+        else:
+            end_idx = (i + 1) * cluster_size
+
+        clusters.append(tensor[start_idx:end_idx])
+
+    return clusters
+
+
+def create_cluster_edge_index(cluster_size):
+    # Create edges for a cluster (similar to your original edge creation)
+    edge_start = list(range(cluster_size - 1))
+    edge_end = list(range(1, cluster_size))
+    edge_end2 = list(range(2, cluster_size))
+    edge_end2.extend([cluster_size - 1])
+    edge_end.extend(edge_end2)
+    edge_index = torch.tensor([edge_start * 2, edge_end], dtype=torch.long)
+
+    return edge_index
+
+
+def add_gaussian_noise(input_tensor, mean=0.0, std=0.1):
+    noise = torch.randn_like(input_tensor) * std + mean
+    noisy_input = input_tensor + noise
+    return torch.clamp(noisy_input, 0.0, 1.0)  # Clamping to keep values in [0, 1] range
+
+
+def replace_categorical_null(arr):
+    for i in range(arr.shape[1]):
+        col = arr[:, i]
+        count_zeros = np.sum(col == 0)
+        count_ones = np.sum(col == 1)
+
+        most_common = 1 if count_ones >= count_zeros else 0
+        arr[np.isnan(arr[:, i]), i] = most_common
+    return arr
+
+
+def evaluate_knn_imputation(full_data, missing_data, imputer='mean', n_neighbors=3):
+    print('starting knn imputation for evaluation')
+
+    mask = np.isnan(missing_data)
+
+    if imputer == 'knn':
+        imputer_model = KNNImputer(n_neighbors=n_neighbors)
+    else:
+        imputer_model = SimpleImputer(strategy='mean')
+
+    imputed_data = imputer_model.fit_transform(missing_data)
+
+    full_imputed_values = full_data[mask]
+    imputed_values = imputed_data[mask]
+
+    mse = mean_squared_error(full_imputed_values, imputed_values)
+    mae = mean_absolute_error(full_imputed_values, imputed_values)
+    r2 = r2_score(full_imputed_values, imputed_values)
+
+    print('done eval')
+    return mse, mae, r2
+
+
+def cluster_knn_imputer(df, df_y, n_neighbors=2):
+    # Initialize total metrics
+    total_mse, total_mae, total_r2 = 0, 0, 0
+    cluster_count = 0
+
+    # Group the DataFrame based on specified columns
+    groups = df.groupby(['POSTCODE', 'SUBURB_NAME'])
+    groups_y = df_y.groupby(['POSTCODE', 'SUBURB_NAME'])
+
+    # Process each group
+    for (key, group), (key_Y, group_y) in zip(groups, groups_y):
+        if len(group) <= 2:
+            continue
+        # Reset index for easier handling
+        group = group.reset_index(drop=True)
+        group_y = group_y.reset_index(drop=True)
+
+        arr = group.values[:, 5:15]
+        arr_y = group_y.values[:, 5:15]
+
+        # Create a mask of missing values (True for missing, False for present)
+        arr = np.array(arr, dtype='float')
+        arr_y = np.array(arr_y, dtype='float')
+        mask = np.isnan(arr)
+
+        # Apply KNN Imputer
+        imputer = KNNImputer(n_neighbors=n_neighbors)
+
+        # Impute missing values using KNNImputer
+        imputed_data = imputer.fit_transform(arr)
+
+        # Get only the imputed values using the mask
+        if mask.shape[1] != imputed_data.shape[1]:
+            continue
+
+        imputed_values = imputed_data[mask]
+        true_values = arr_y[mask]
+
+        if np.isnan(imputed_values).any():
+            print("Some rows have only NaNs, skipping them")
+            continue  # Skip this group or handle differently
+
+        if len(imputed_values) > 0:
+            mse = mean_squared_error(true_values, imputed_values)
+            mae = mean_absolute_error(true_values, imputed_values)
+            r2 = r2_score(true_values, imputed_values)
+
+            if mse is None or mae is None or r2 is None:
+                print('sth is none')
+            # Accumulate metrics
+            total_mse += mse
+            total_mae += mae
+            total_r2 += r2
+            cluster_count += 1
+
+    # Calculate the average MSE, MAE, and R2 across all clusters
+    avg_mse = total_mse / cluster_count if cluster_count > 0 else None
+    avg_mae = total_mae / cluster_count if cluster_count > 0 else None
+    avg_r2 = total_r2 / cluster_count if cluster_count > 0 else None
+
+    return avg_mse, avg_mae, avg_r2
+
+
+def knn_imputer(arr):
+    missing_mask = np.isnan(arr)
+
+    imputer = SimpleImputer(strategy='mean')
+    arr_imputed = imputer.fit_transform(arr)
+
+    nn = NearestNeighbors(n_neighbors=2, algorithm='auto').fit(arr_imputed)
+    distances, indices = nn.kneighbors(arr_imputed)
+
+    for i in range(arr_imputed.shape[0]):
+        nearest_neighbor_idx = indices[i, 1]
+
+        for j in range(arr_imputed.shape[1]):
+            if missing_mask[i, j]:
+                arr_imputed[i, j] = arr_imputed[nearest_neighbor_idx, j]
+
+    return arr_imputed
 
 
 def create_edge_index(df):

@@ -13,6 +13,5 @@ joblib
 
 scikit-learn
 
-torch-scatter
-torch-sparse
+
 torch-geometric

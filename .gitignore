@@ -28,3 +28,5 @@ gat/
 property_data_correction/
 gat_autoencoder/runs/
 .idea/
+
+.claude_dev

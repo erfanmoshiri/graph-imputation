@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from gat_autoencoder.load_data import load_data
-from gat_autoencoder.train_model import run
+from gat_autoencoder.categorical_load_data import load_data
+from gat_autoencoder.categorical_train_test import run
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from sklearn.metrics import confusion_matrix
 
-from gat_autoencoder.categorical_load_data import find_weight_for_cats, add_gaussian_noise
+from gat_autoencoder.data_preprocessing import add_gaussian_noise
 from gat_autoencoder.decoder_model import MyDecoder
 from gat_autoencoder.edge_index import create_clusters, create_edge_index_for_full_data
 
